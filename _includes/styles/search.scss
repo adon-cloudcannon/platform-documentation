@@ -624,7 +624,6 @@ pagefind-modal-trigger {
     background: var(--pf-skeleton);
     border-radius: var(--pf-border-radius);
     border: 1px solid var(--pf-border);
-    overflow: hidden;
 }
 
 :is(*, #\#):is(*, #\#):is(*, #\#) .pf-filter-group {
@@ -1630,6 +1629,11 @@ pagefind-modal-trigger {
       &:hover {
         background-color: var(--button-hover);
         border: var(--border-width) solid var(--button-border);
+      }
+
+      &:focus-visible {
+        outline: revert !important;
+        outline-offset: revert !important;
       }
 
       // Icon styling
