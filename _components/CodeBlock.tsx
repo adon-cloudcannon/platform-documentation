@@ -45,6 +45,8 @@ const parseLanguageExtension = (lang: string): string => {
   switch (lang.toLowerCase()) {
     case "javascript":
       return "cjs";
+    case "yaml":
+      return "yml";
     default:
       return lang;
   }

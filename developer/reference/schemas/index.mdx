@@ -16,7 +16,7 @@ Most IDEs will automatically apply these schemas based on filename. If needed, y
 - **JSON files**: Add a `$schema` property to your configuration file
 - **YAML files**: Add a `# yaml-language-server` comment at the top of the file (requires the <a href="https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml" target="_blank" rel="noopener noreferrer">Red Hat YAML extension</a> in VS Code/Cursor)
 
-**Configuration File** (`cloudcannon.config.json` or `cloudcannon.config.yaml`):
+**Configuration File** (`cloudcannon.config.json` or `cloudcannon.config.yml`):
 
 <comp.CodeTabs>
   <comp.CodeTab language="json" source="cloudcannon.config.json">
@@ -26,7 +26,7 @@ Most IDEs will automatically apply these schemas based on filename. If needed, y
 }
 ```
   </comp.CodeTab>
-  <comp.CodeTab language="yaml" source="cloudcannon.config.yaml">
+  <comp.CodeTab language="yaml" source="cloudcannon.config.yml">
 ```
 # yaml-language-server: $schema=https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json
 ```
@@ -69,7 +69,7 @@ Most modern IDEs automatically detect CloudCannon configuration files and apply 
 ```
 {
   "yaml.schemas": {
-    "https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json": "cloudcannon.config.yaml"
+    "https://raw.githubusercontent.com/CloudCannon/configuration-types/main/cloudcannon-config.schema.json": "cloudcannon.config.yml"
   }
 }
 ```
@@ -111,7 +111,7 @@ We recommend [migrating to Unified Configuration](/documentation/guides/unified-
 }
 ```
   </comp.CodeTab>
-  <comp.CodeTab language="yaml" source="cloudcannon.config.yaml">
+  <comp.CodeTab language="yaml" source="cloudcannon.config.yml">
 ```
 # yaml-language-server: $schema=https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.legacy-jekyll.schema.json
 ```
@@ -128,7 +128,7 @@ We recommend [migrating to Unified Configuration](/documentation/guides/unified-
 }
 ```
   </comp.CodeTab>
-  <comp.CodeTab language="yaml" source="cloudcannon.config.yaml">
+  <comp.CodeTab language="yaml" source="cloudcannon.config.yml">
 ```
 # yaml-language-server: $schema=https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.legacy-hugo.schema.json
 ```
@@ -145,7 +145,7 @@ We recommend [migrating to Unified Configuration](/documentation/guides/unified-
 }
 ```
   </comp.CodeTab>
-  <comp.CodeTab language="yaml" source="cloudcannon.config.yaml">
+  <comp.CodeTab language="yaml" source="cloudcannon.config.yml">
 ```
 # yaml-language-server: $schema=https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.legacy-eleventy.schema.json
 ```
@@ -162,7 +162,7 @@ We recommend [migrating to Unified Configuration](/documentation/guides/unified-
 }
 ```
   </comp.CodeTab>
-  <comp.CodeTab language="yaml" source="cloudcannon.config.yaml">
+  <comp.CodeTab language="yaml" source="cloudcannon.config.yml">
 ```
 # yaml-language-server: $schema=https://github.com/cloudcannon/configuration-types/releases/latest/download/cloudcannon-config.legacy-reader.schema.json
 ```
