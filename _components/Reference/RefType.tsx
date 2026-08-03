@@ -1,6 +1,19 @@
 import { getRefUrl, resolveRef, type SectionId } from "./helpers.ts";
 import { DocEntry } from "./types.d.ts";
 
+// Split a snake_case key so each underscore gets <wbr>s on both sides — long
+// keys like `collections_config_from_glob[*]` can then wrap at underscore
+// boundaries when they'd otherwise overflow a narrow container.
+function keyWithBreaks(key?: string) {
+  if (!key) return null;
+  const segments = key.split("_");
+  return segments.flatMap((seg, i) =>
+    i === 0
+      ? [seg]
+      : [<wbr key={`w-${i}-a`} />, "_", <wbr key={`w-${i}-b`} />, seg]
+  );
+}
+
 function DocName({ doc }: { doc: DocEntry }) {
   if (!doc) return null;
   return doc.title
@@ -42,9 +55,15 @@ function TypeDisplay(
   const shouldLink = nested && !!entryUrl && currentUrl !== entryUrl;
 
   if (nested && entryUrl && (entry.title || entry.key)) {
+    // We're already inside an outer <code> (from TypeDisplay's Array/Object
+    // wrapping), so inline DocName's markup here without its own <code>
+    // wrapper to avoid a redundant nested code element that browsers treat
+    // as an extra line-break opportunity.
     return (
       <a href={entryUrl}>
-        <DocName doc={entry} />
+        {entry.title
+          ? <span class="code-not-monospace">{entry.title}</span>
+          : keyWithBreaks(entry.key)}
       </a>
     );
   }

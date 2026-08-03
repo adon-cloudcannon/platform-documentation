@@ -215,11 +215,17 @@
 
   &__header {
     margin-bottom: var(--gap-half);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
+    // Inline flow (not flex) so <code> children can wrap snake-style with
+    // per-fragment rounded borders via box-decoration-break: clone.
+    // Flex blockifies children, forcing display:inline to behave as block.
     line-height: var(--line-height-x-small);
+
+    // Space between the key, the type-code, and the anchor link.
+    // Trailing (margin-right) instead of leading (margin-left) so that when
+    // a child wraps to a new line, its start isn't indented by the margin.
+    > *:not(:last-child) {
+      margin-right: 5px;
+    }
 
     code:not(.code-no-box) {
       background-color: var(--inline-code-bg);
@@ -228,7 +234,10 @@
       padding: 0 6px;
       font-size: var(--font-size-monospace-normal);
       white-space: pre-wrap;
-      display: inline-block;
+      display: inline;
+      overflow-wrap: anywhere;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
     }
   }
 
