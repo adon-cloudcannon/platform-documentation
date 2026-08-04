@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "chunk": "deno run --allow-read --allow-write --allow-env src/main.ts chunk",
+    "embed": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts embed",
+    "build": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts build",
+    "serve": "deno run --allow-net --allow-read src/serve.ts"
+  },
+  "imports": {
+    "deno-dom": "jsr:@b-fuze/deno-dom@0.1.48",
+    "@huggingface/transformers": "npm:@huggingface/transformers@^3.0.2",
+    "@std/fs": "jsr:@std/fs@1",
+    "@std/path": "jsr:@std/path@1",
+    "@std/encoding": "jsr:@std/encoding@1"
+  }
+}

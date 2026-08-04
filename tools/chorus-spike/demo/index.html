@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>chorus spike — semantic search demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      max-width: 960px;
+      margin: 2em auto;
+      padding: 0 1em 4em;
+      line-height: 1.45;
+      color: #222;
+    }
+    h1 { font-size: 1.6em; margin: 0 0 0.2em; }
+    .subtitle { color: #666; font-size: 0.9em; margin-bottom: 1.5em; }
+    .status {
+      padding: 0.6em 1em;
+      background: #f4f4f5;
+      border-radius: 6px;
+      margin-bottom: 1em;
+      font-size: 0.9em;
+    }
+    .status.ready { background: #e8f5e9; }
+    .status.error { background: #ffebee; color: #b71c1c; }
+    input[type="search"] {
+      width: 100%;
+      padding: 0.75em 1em;
+      font-size: 1.1em;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+    input[type="search"]:focus { outline: 2px solid #1976d2; outline-offset: -1px; }
+    .test-queries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4em;
+      margin: 1em 0 0.4em;
+    }
+    .test-queries button {
+      padding: 0.35em 0.75em;
+      font-size: 0.85em;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 999px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .test-queries button:hover { background: #eee; }
+    .test-queries button.active { background: #e3f2fd; border-color: #64b5f6; }
+    .meta { color: #666; font-size: 0.85em; margin: 1em 0; }
+    .results { margin-top: 0.5em; }
+    .result {
+      padding: 0.9em 0;
+      border-bottom: 1px solid #eee;
+    }
+    .result .heading-path {
+      color: #666;
+      font-size: 0.82em;
+      margin-bottom: 0.2em;
+    }
+    .result .heading-path .sep { opacity: 0.5; margin: 0 0.3em; }
+    .result h3 { margin: 0 0 0.2em; font-size: 1em; }
+    .result h3 a { color: #1565c0; text-decoration: none; }
+    .result h3 a:hover { text-decoration: underline; }
+    .result .excerpt { color: #444; font-size: 0.9em; }
+    .result .score {
+      float: right;
+      color: #999;
+      font-family: ui-monospace, monospace;
+      font-size: 0.8em;
+    }
+    .compare-link {
+      font-size: 0.85em;
+      color: #666;
+      margin-left: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <h1>chorus spike</h1>
+  <p class="subtitle">
+    Semantic search prototype for CloudCannon docs (M0).
+    Links open on production for side-by-side comparison with Pagefind.
+  </p>
+
+  <div id="status" class="status">Loading semantic index…</div>
+
+  <input id="q" type="search"
+         placeholder="Try: 'locking editing', 'block editors from deleting', 'widgets'"
+         disabled autocomplete="off" spellcheck="false" />
+
+  <div class="test-queries" id="test-queries"></div>
+
+  <div class="meta" id="meta"></div>
+
+  <div class="results" id="results"></div>
+
+  <script type="module">
+    import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2";
+
+    const MODEL = "Xenova/multi-qa-MiniLM-L6-cos-v1";
+    const DIM = 384;
+    const BASE = "https://cloudcannon.com";
+
+    const TEST_QUERIES = [
+      "locking editing",
+      "block editors from deleting",
+      "how do I add a dropdown",
+      "let translators edit only certain files",
+      "custom styles in the editor",
+      "why won't my build finish",
+      "how do I connect my repo",
+      "what's the difference between a schema and a structure",
+      "widgets",
+      "forms",
+      "fields",
+      "how do I let editors change page titles",
+      "can I have two people editing at once",
+      "syncing to prod",
+      "images not loading",
+      "make images look sharp",
+      "postbuild",
+      "cloudcannon.config.yml",
+      "publish workflow",
+      "translate my site",
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    const statusEl = $("status");
+    const input = $("q");
+    const resultsEl = $("results");
+    const metaEl = $("meta");
+    const testEl = $("test-queries");
+
+    for (const q of TEST_QUERIES) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = q;
+      b.onclick = () => {
+        for (const bb of testEl.querySelectorAll("button")) bb.classList.remove("active");
+        b.classList.add("active");
+        input.value = q;
+        runSearch(q);
+      };
+      testEl.appendChild(b);
+    }
+
+    function setStatus(text, cls = "") {
+      statusEl.textContent = text;
+      statusEl.className = "status" + (cls ? " " + cls : "");
+    }
+
+    let index, bytes, extractor;
+
+    try {
+      const indexResp = await fetch("./semantic-index.json");
+      if (!indexResp.ok) throw new Error(`index fetch: ${indexResp.status}`);
+      index = await indexResp.json();
+      const raw = Uint8Array.from(atob(index.embeddings), (c) => c.charCodeAt(0));
+      bytes = new Int8Array(raw.buffer);
+
+      setStatus(`Loading query model (${MODEL}, ~22 MB on first load, cached after)…`);
+      extractor = await pipeline("feature-extraction", MODEL, { dtype: "q8" });
+
+      setStatus(`Ready. ${index.chunks.length} chunks indexed. Type a query or click a test query above.`, "ready");
+      input.disabled = false;
+      input.focus();
+    } catch (err) {
+      setStatus(`Failed: ${err.message}`, "error");
+      throw err;
+    }
+
+    async function runSearch(q) {
+      const query = q.trim();
+      if (!query) { resultsEl.innerHTML = ""; metaEl.textContent = ""; return; }
+
+      const t0 = performance.now();
+      const out = await extractor(query, { pooling: "mean", normalize: true });
+      const qv = out.data;
+
+      const scores = new Float32Array(index.chunks.length);
+      for (let i = 0; i < index.chunks.length; i++) {
+        let s = 0;
+        const base = i * DIM;
+        for (let k = 0; k < DIM; k++) s += qv[k] * bytes[base + k];
+        scores[i] = s / 127;
+      }
+
+      const top = Array.from(scores.keys())
+        .sort((a, b) => scores[b] - scores[a])
+        .slice(0, 10);
+
+      const dt = (performance.now() - t0).toFixed(1);
+      const pagefindUrl = `${BASE}/documentation/?q=${encodeURIComponent(query)}`;
+      metaEl.innerHTML =
+        `${index.chunks.length} chunks searched in ${dt}ms` +
+        ` <a class="compare-link" href="${pagefindUrl}" target="_blank">Compare on Pagefind →</a>`;
+
+      resultsEl.innerHTML = top.map((i) => {
+        const c = index.chunks[i];
+        const anchor = c.anchor ? `#${c.anchor}` : "";
+        const title = c.headingPath[c.headingPath.length - 1] || c.url;
+        const path = c.headingPath.map(escape).join('<span class="sep">›</span>');
+        return `
+          <div class="result">
+            <span class="score">${scores[i].toFixed(3)}</span>
+            <div class="heading-path">${path}</div>
+            <h3><a href="${BASE}${c.url}${anchor}" target="_blank">${escape(title)}</a></h3>
+            <div class="excerpt">${escape(c.excerpt)}…</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function escape(s) {
+      return String(s).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    let timer;
+    input.addEventListener("input", (e) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => runSearch(e.target.value), 200);
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { clearTimeout(timer); runSearch(input.value); }
+    });
+  </script>
+</body>
+</html>
