@@ -8,6 +8,7 @@
 
 import { chunk } from "./chunk.ts";
 import { embed } from "./embed.ts";
+import { embedM2V } from "./embed-m2v.ts";
 
 const cmd = Deno.args[0];
 
@@ -18,12 +19,21 @@ switch (cmd) {
   case "embed":
     await embed();
     break;
+  case "embed-m2v":
+    await embedM2V();
+    break;
   case "build":
     await chunk();
     await embed();
     break;
+  case "build-m2v":
+    await chunk();
+    await embedM2V();
+    break;
   default:
-    console.error("Usage: deno task <chunk|embed|build|serve>");
+    console.error(
+      "Usage: deno task <chunk|embed|embed-m2v|build|build-m2v|serve|distill>",
+    );
     Deno.exit(1);
 }
 

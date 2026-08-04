@@ -2,7 +2,11 @@
   "tasks": {
     "chunk": "deno run --allow-read --allow-write --allow-env src/main.ts chunk",
     "embed": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts embed",
+    "embed-m2v": "deno run --allow-read --allow-write --allow-env src/main.ts embed-m2v",
     "build": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts build",
+    "build-m2v": "deno run --allow-read --allow-write --allow-env src/main.ts build-m2v",
+    "distill-setup": "python3 -m venv distill/.venv && distill/.venv/bin/pip install -r distill/requirements.txt",
+    "distill": "distill/.venv/bin/python3 distill/distill.py",
     "serve": "deno run --allow-net --allow-read src/serve.ts"
   },
   "imports": {

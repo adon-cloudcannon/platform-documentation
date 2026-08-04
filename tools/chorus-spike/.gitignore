@@ -1,2 +1,11 @@
 output/
 demo/semantic-index.json
+demo/semantic-index-m2v.json
+demo/m2v-vectors.bin
+demo/m2v-vocab.txt
+demo/m2v-config.json
+demo/m2v.js
+distill/output/
+distill/.venv/
+__pycache__/
+*.pyc

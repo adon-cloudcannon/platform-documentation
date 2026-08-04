@@ -15,16 +15,20 @@
       color: #222;
     }
     h1 { font-size: 1.6em; margin: 0 0 0.2em; }
-    .subtitle { color: #666; font-size: 0.9em; margin-bottom: 1.5em; }
-    .status {
-      padding: 0.6em 1em;
-      background: #f4f4f5;
-      border-radius: 6px;
-      margin-bottom: 1em;
-      font-size: 0.9em;
+    .subtitle { color: #666; font-size: 0.9em; margin-bottom: 0.5em; }
+    .encoder-badge {
+      display: inline-block;
+      font-family: ui-monospace, monospace;
+      font-size: 0.75em;
+      background: #eef;
+      color: #334;
+      padding: 0.15em 0.5em;
+      border-radius: 4px;
+      margin-bottom: 1.5em;
     }
-    .status.ready { background: #e8f5e9; }
-    .status.error { background: #ffebee; color: #b71c1c; }
+    .encoder-badge.loading { background: #fff3cd; color: #664; }
+    .encoder-badge.ready { background: #d4edda; color: #274; }
+    .encoder-badge.error { background: #f8d7da; color: #712; }
     input[type="search"] {
       width: 100%;
       padding: 0.75em 1em;
@@ -52,16 +56,17 @@
     .test-queries button:hover { background: #eee; }
     .test-queries button.active { background: #e3f2fd; border-color: #64b5f6; }
     .meta { color: #666; font-size: 0.85em; margin: 1em 0; }
+    .warming {
+      padding: 0.6em 1em;
+      background: #fff3cd;
+      border-radius: 6px;
+      color: #664;
+      font-size: 0.9em;
+      margin: 1em 0;
+    }
     .results { margin-top: 0.5em; }
-    .result {
-      padding: 0.9em 0;
-      border-bottom: 1px solid #eee;
-    }
-    .result .heading-path {
-      color: #666;
-      font-size: 0.82em;
-      margin-bottom: 0.2em;
-    }
+    .result { padding: 0.9em 0; border-bottom: 1px solid #eee; }
+    .result .heading-path { color: #666; font-size: 0.82em; margin-bottom: 0.2em; }
     .result .heading-path .sep { opacity: 0.5; margin: 0 0.3em; }
     .result h3 { margin: 0 0 0.2em; font-size: 1em; }
     .result h3 a { color: #1565c0; text-decoration: none; }
@@ -73,25 +78,20 @@
       font-family: ui-monospace, monospace;
       font-size: 0.8em;
     }
-    .compare-link {
-      font-size: 0.85em;
-      color: #666;
-      margin-left: 0.5em;
-    }
+    .compare-link { font-size: 0.85em; color: #666; margin-left: 0.5em; }
   </style>
 </head>
 <body>
   <h1>chorus spike</h1>
   <p class="subtitle">
-    Semantic search prototype for CloudCannon docs (M0).
+    Semantic search prototype for CloudCannon docs. ONNX teacher, lazy-loaded.
     Links open on production for side-by-side comparison with Pagefind.
   </p>
-
-  <div id="status" class="status">Loading semantic index…</div>
+  <div class="encoder-badge" id="encoder-badge">encoder: not loaded</div>
 
   <input id="q" type="search"
          placeholder="Try: 'locking editing', 'block editors from deleting', 'widgets'"
-         disabled autocomplete="off" spellcheck="false" />
+         autocomplete="off" spellcheck="false" />
 
   <div class="test-queries" id="test-queries"></div>
 
@@ -130,7 +130,7 @@
     ];
 
     const $ = (id) => document.getElementById(id);
-    const statusEl = $("status");
+    const badge = $("encoder-badge");
     const input = $("q");
     const resultsEl = $("results");
     const metaEl = $("meta");
@@ -149,34 +149,75 @@
       testEl.appendChild(b);
     }
 
-    function setStatus(text, cls = "") {
-      statusEl.textContent = text;
-      statusEl.className = "status" + (cls ? " " + cls : "");
+    function setBadge(text, cls = "") {
+      badge.textContent = text;
+      badge.className = "encoder-badge" + (cls ? " " + cls : "");
     }
 
-    let index, bytes, extractor;
-
+    // Load index eagerly — small, needed for any search.
+    let index, bytes;
     try {
+      const t0 = performance.now();
       const indexResp = await fetch("./semantic-index.json");
       if (!indexResp.ok) throw new Error(`index fetch: ${indexResp.status}`);
       index = await indexResp.json();
       const raw = Uint8Array.from(atob(index.embeddings), (c) => c.charCodeAt(0));
       bytes = new Int8Array(raw.buffer);
-
-      setStatus(`Loading query model (${MODEL}, ~22 MB on first load, cached after)…`);
-      extractor = await pipeline("feature-extraction", MODEL, { dtype: "q8" });
-
-      setStatus(`Ready. ${index.chunks.length} chunks indexed. Type a query or click a test query above.`, "ready");
-      input.disabled = false;
-      input.focus();
+      const dt = (performance.now() - t0).toFixed(0);
+      setBadge(`encoder: not loaded  ·  index: ${index.chunks.length} chunks in ${dt}ms`);
     } catch (err) {
-      setStatus(`Failed: ${err.message}`, "error");
+      setBadge(`index load failed: ${err.message}`, "error");
       throw err;
     }
+
+    // Lazy load the model.
+    let extractor = null;
+    let modelPromise = null;
+    let pendingQuery = null;
+
+    function loadModel() {
+      if (modelPromise) return modelPromise;
+      setBadge(`encoder: ${MODEL} — warming up (22 MB, one-time)…`, "loading");
+      const t0 = performance.now();
+      modelPromise = pipeline("feature-extraction", MODEL, { dtype: "q8" })
+        .then((m) => {
+          extractor = m;
+          const dt = ((performance.now() - t0) / 1000).toFixed(1);
+          setBadge(
+            `encoder: ${MODEL}  ·  ready in ${dt}s  ·  ${index.chunks.length} chunks × ${DIM}d`,
+            "ready",
+          );
+          if (pendingQuery) {
+            const q = pendingQuery;
+            pendingQuery = null;
+            runSearch(q);
+          }
+          return m;
+        })
+        .catch((err) => {
+          setBadge(`model load failed: ${err.message}`, "error");
+          throw err;
+        });
+      return modelPromise;
+    }
+
+    // Kick off in idle time as an aggressive preload…
+    const idle = window.requestIdleCallback ?? ((cb) => setTimeout(cb, 800));
+    idle(() => loadModel(), { timeout: 2000 });
+    // …and also on focus so intent triggers it immediately if idle didn't already.
+    input.addEventListener("focus", loadModel, { once: false });
 
     async function runSearch(q) {
       const query = q.trim();
       if (!query) { resultsEl.innerHTML = ""; metaEl.textContent = ""; return; }
+
+      if (!extractor) {
+        pendingQuery = query;
+        resultsEl.innerHTML =
+          `<div class="warming">Warming up the encoder… your query will run as soon as it's ready.</div>`;
+        loadModel();
+        return;
+      }
 
       const t0 = performance.now();
       const out = await extractor(query, { pooling: "mean", normalize: true });
