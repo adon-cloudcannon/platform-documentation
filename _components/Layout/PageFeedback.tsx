@@ -50,7 +50,7 @@ export default function PageFeedback({ url, helpers }: Props) {
         },
       }`}
       x-init="updateOffset(); window.addEventListener('scroll', () => updateOffset(), { passive: true }); window.addEventListener('resize', () => updateOffset())"
-      x-bind:class="{ 'c-feedback--collapsed': !open, 'c-feedback--rated-up': rating === 'up', 'c-feedback--rated-down': rating === 'down' }"
+      x-bind:class="{ 'c-feedback--collapsed': !open, 'c-feedback--rated-up': rating === 'thumbs-up', 'c-feedback--rated-down': rating === 'thumbs-down', 'c-feedback--rated-issues': rating === 'issues' }"
       x-bind:style="'bottom: ' + (20 + footerOverlap) + 'px'"
     >
       {/* Collapsed tab — rounded pill sticking in from the right edge.
@@ -101,40 +101,53 @@ export default function PageFeedback({ url, helpers }: Props) {
 
         <p className="c-feedback__question">Was this page useful?</p>
 
-        <div
-          className="c-feedback__thumbs"
-          role="radiogroup"
-          aria-label="Rate this page"
-        >
+        <div className="c-feedback__actions-row">
+          <div
+            className="c-feedback__thumbs"
+            role="radiogroup"
+            aria-label="Rate this page"
+          >
+            <button
+              type="button"
+              className="c-feedback__thumb"
+              x-bind:class="{ 'c-feedback__thumb--active': rating === 'thumbs-up' }"
+              x-bind:aria-pressed="rating === 'thumbs-up'"
+              x-on:click="toggleRating('thumbs-up')"
+              aria-label="Yes, useful"
+            >
+              <img
+                src={helpers.icon("thumb_up:outlined", "material")}
+                alt=""
+                aria-hidden="true"
+                inline="true"
+              />
+            </button>
+            <button
+              type="button"
+              className="c-feedback__thumb"
+              x-bind:class="{ 'c-feedback__thumb--active': rating === 'thumbs-down' }"
+              x-bind:aria-pressed="rating === 'thumbs-down'"
+              x-on:click="toggleRating('thumbs-down')"
+              aria-label="No, not useful"
+            >
+              <img
+                src={helpers.icon("thumb_down:outlined", "material")}
+                alt=""
+                aria-hidden="true"
+                inline="true"
+              />
+            </button>
+          </div>
+          {/* Issues rating — behaves like a thumb: toggle-select, opens the
+              comment box, submitted as rating="issues". */}
           <button
             type="button"
-            className="c-feedback__thumb"
-            x-bind:class="{ 'c-feedback__thumb--active': rating === 'up' }"
-            x-bind:aria-pressed="rating === 'up'"
-            x-on:click="toggleRating('up')"
-            aria-label="Yes, useful"
+            className="c-feedback__issues"
+            x-bind:class="{ 'c-feedback__issues--active': rating === 'issues' }"
+            x-bind:aria-pressed="rating === 'issues'"
+            x-on:click="toggleRating('issues')"
           >
-            <img
-              src={helpers.icon("thumb_up:outlined", "material")}
-              alt=""
-              aria-hidden="true"
-              inline="true"
-            />
-          </button>
-          <button
-            type="button"
-            className="c-feedback__thumb"
-            x-bind:class="{ 'c-feedback__thumb--active': rating === 'down' }"
-            x-bind:aria-pressed="rating === 'down'"
-            x-on:click="toggleRating('down')"
-            aria-label="No, not useful"
-          >
-            <img
-              src={helpers.icon("thumb_down:outlined", "material")}
-              alt=""
-              aria-hidden="true"
-              inline="true"
-            />
+            Issues
           </button>
         </div>
 

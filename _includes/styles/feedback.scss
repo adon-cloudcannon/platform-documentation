@@ -87,13 +87,15 @@
     display: inline-block;
   }
   &--rated-up .c-feedback__tab,
-  &--rated-down .c-feedback__tab {
+  &--rated-down .c-feedback__tab,
+  &--rated-issues .c-feedback__tab {
     background: var(--selected-blue);
     border-color: var(--selected-blue);
     color: white;
   }
   &--rated-up .c-feedback__tab:hover,
-  &--rated-down .c-feedback__tab:hover {
+  &--rated-down .c-feedback__tab:hover,
+  &--rated-issues .c-feedback__tab:hover {
     background: var(--selected-blue);
     color: white;
   }
@@ -155,9 +157,51 @@
     font-weight: var(--font-weight-semibold);
   }
 
+  &__actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
   &__thumbs {
     display: flex;
     gap: 8px;
+  }
+
+  &__issues {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 14px;
+    background: transparent;
+    border: var(--border-width) solid var(--button-border);
+    border-radius: var(--border-radius);
+    font: inherit;
+    font-size: var(--font-size-x-small);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: var(--button-hover);
+      border-color: var(--selected-blue);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--selected-blue);
+      outline-offset: 2px;
+    }
+
+    &--active,
+    &--active:hover {
+      background: var(--selected-blue);
+      border-color: var(--selected-blue);
+      color: white;
+    }
   }
 
   &__thumb {
@@ -249,7 +293,11 @@
 
   &__cancel,
   &__submit {
-    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 14px;
     border-radius: var(--border-radius);
     border: var(--border-width) solid transparent;
     font: inherit;
