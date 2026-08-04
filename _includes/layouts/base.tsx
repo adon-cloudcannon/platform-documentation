@@ -426,6 +426,8 @@ export default function BaseLayout(props: Props, helpers: Helpers) {
           <comp.Layout.Footer footernav={footernav} helpers={helpers} />
         </div>
 
+        <comp.Layout.PageFeedback url={url} helpers={helpers} />
+
         <comp.Layout.Hubspot />
 
         <div className="iframe-controls">

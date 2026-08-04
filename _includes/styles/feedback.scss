@@ -1,0 +1,300 @@
+// "Was this page useful?" widget.
+//
+// Two visual states:
+//   .c-feedback--collapsed  — small rounded tab flush to the right edge.
+//   (default when open)     — full form panel with a 20px right margin.
+//
+// Position is fixed, near the bottom-right. `bottom` is driven from Alpine
+// state (via inline style) so the widget rises above the footer as it
+// enters the viewport.
+
+.c-feedback {
+  position: fixed;
+  right: 0;
+  z-index: 40;
+  color: var(--text);
+
+  &[x-cloak] {
+    display: none !important;
+  }
+
+  // Collapsed state: only the tab is visible; sits flush against the right
+  // edge with rounded corners on the LEFT only (like a little tag peeking
+  // in from off-screen).
+  &--collapsed {
+    right: 0;
+  }
+
+  // Expanded state: panel with a 20px right margin so it doesn't touch the
+  // viewport edge.
+  &:not(&--collapsed) {
+    right: 20px;
+  }
+
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    // Icon pinned to the left of the tab so that as the tab widens
+    // leftward on hover, the icon slides along with the left edge —
+    // maintaining its distance from that edge instead of drifting to
+    // stay centred.
+    justify-content: flex-start;
+    width: 44px;
+    height: 52px;
+    padding-left: 11px;
+    background: var(--background);
+    border: var(--border-width) solid var(--button-border);
+    border-right: none;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    box-shadow: var(--nav-shadow);
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 0.15s ease, width 0.2s ease,
+      border-color 0.15s ease;
+
+    svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: var(--button-hover);
+      width: 56px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--selected-blue);
+      outline-offset: -2px;
+    }
+  }
+
+  // Tab icon swap: thumb-up shows by default AND when rated up. Only
+  // when rated down does the icon swap to thumb-down. Rated tabs get
+  // the same blue-background treatment as the panel's active thumb, so
+  // the tab and panel visuals match.
+  &__tab-icon--up {
+    display: inline-block;
+  }
+  &__tab-icon--down {
+    display: none;
+  }
+  &--rated-down .c-feedback__tab-icon--up {
+    display: none;
+  }
+  &--rated-down .c-feedback__tab-icon--down {
+    display: inline-block;
+  }
+  &--rated-up .c-feedback__tab,
+  &--rated-down .c-feedback__tab {
+    background: var(--selected-blue);
+    border-color: var(--selected-blue);
+    color: white;
+  }
+  &--rated-up .c-feedback__tab:hover,
+  &--rated-down .c-feedback__tab:hover {
+    background: var(--selected-blue);
+    color: white;
+  }
+
+  &__panel {
+    position: relative;
+    width: 300px;
+    padding: 16px;
+    background: var(--background);
+    border: var(--border-width) solid var(--button-border);
+    border-radius: var(--border-radius);
+    box-shadow: var(--nav-shadow);
+    font-size: var(--font-size-x-small);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &[x-cloak] {
+      display: none !important;
+    }
+  }
+
+  &__close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--border-radius);
+    color: var(--changelog-content);
+    cursor: pointer;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    &:hover {
+      background: var(--button-hover);
+      color: var(--text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--selected-blue);
+      outline-offset: 0;
+    }
+  }
+
+  &__question {
+    margin: 0;
+    padding-right: 32px; // room for close button
+    font-weight: var(--font-weight-semibold);
+  }
+
+  &__thumbs {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__thumb {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: var(--border-width) solid var(--button-border);
+    border-radius: var(--border-radius);
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+      color 0.15s ease;
+
+    svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    &:hover {
+      background: var(--button-hover);
+      border-color: var(--selected-blue);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--selected-blue);
+      outline-offset: 2px;
+    }
+
+    &--active {
+      background: var(--selected-blue);
+      border-color: var(--selected-blue);
+      color: white;
+
+      &:hover {
+        background: var(--selected-blue);
+        color: white;
+      }
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &[x-cloak] {
+      display: none !important;
+    }
+  }
+
+  &__label {
+    font-size: var(--font-size-xx-small);
+    color: var(--changelog-content);
+  }
+
+  &__label-note {
+    opacity: 0.7;
+  }
+
+  &__comment {
+    width: 100%;
+    padding: 8px 10px;
+    border: var(--border-width) solid var(--button-border);
+    border-radius: var(--border-radius);
+    background: var(--background);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--font-size-x-small);
+    resize: vertical;
+    min-height: 60px;
+    box-sizing: border-box;
+
+    &:focus-visible {
+      outline: 2px solid var(--selected-blue);
+      outline-offset: 0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  &__cancel,
+  &__submit {
+    padding: 6px 12px;
+    border-radius: var(--border-radius);
+    border: var(--border-width) solid transparent;
+    font: inherit;
+    font-size: var(--font-size-x-small);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--selected-blue);
+      outline-offset: 2px;
+    }
+  }
+
+  &__cancel {
+    background: transparent;
+    color: var(--changelog-content);
+    border-color: var(--button-border);
+
+    &:hover {
+      background: var(--button-hover);
+      color: var(--text);
+    }
+  }
+
+  &__submit {
+    background: var(--selected-blue);
+    color: white;
+
+    &:hover {
+      filter: brightness(0.95);
+    }
+  }
+
+  // Honeypot: sr-only pattern (off-screen, not display:none which some
+  // bots specifically skip). Non-focusable via keyboard, ignored by
+  // screen readers.
+  &__gotcha {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
