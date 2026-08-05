@@ -3,6 +3,7 @@
     "chunk": "deno run --allow-read --allow-write --allow-env src/main.ts chunk",
     "embed": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts embed",
     "embed-site": "CHORUS_OUT=../../_site/documentation/_chorus deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts embed",
+    "build-site": "CHORUS_OUT=../../_site/documentation/_chorus deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts build",
     "embed-m2v": "deno run --allow-read --allow-write --allow-env src/main.ts embed-m2v",
     "build": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts build",
     "build-m2v": "deno run --allow-read --allow-write --allow-env src/main.ts build-m2v",

@@ -7,8 +7,12 @@
       "command": "DENO_DIR=_vendor deno run -P=lume lume/cli.ts"
     },
     "build": {
-      "description": "Build the site for production",
-      "command": "LUME_LOGS=warn deno task lume"
+      "description": "Build the site for production (Lume + chorus search index)",
+      "command": "LUME_LOGS=warn deno task lume && deno task chorus"
+    },
+    "chorus": {
+      "description": "Build the chorus semantic search index into _site/documentation/_chorus/",
+      "command": "cd tools/chorus-spike && deno task build-site"
     },
     "serve": {
       "description": "Run and serve the site for development",
