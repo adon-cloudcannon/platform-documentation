@@ -89,14 +89,14 @@
   &--rated-up .c-feedback__tab,
   &--rated-down .c-feedback__tab,
   &--rated-issues .c-feedback__tab {
-    background: var(--selected-blue);
-    border-color: var(--selected-blue);
+    background: var(--color-neptune);
+    border-color: var(--color-neptune);
     color: white;
   }
   &--rated-up .c-feedback__tab:hover,
   &--rated-down .c-feedback__tab:hover,
   &--rated-issues .c-feedback__tab:hover {
-    background: var(--selected-blue);
+    background: var(--color-neptune);
     color: white;
   }
 
@@ -198,8 +198,8 @@
 
     &--active,
     &--active:hover {
-      background: var(--selected-blue);
-      border-color: var(--selected-blue);
+      background: var(--color-neptune);
+      border-color: var(--color-neptune);
       color: white;
     }
   }
@@ -236,12 +236,12 @@
     }
 
     &--active {
-      background: var(--selected-blue);
-      border-color: var(--selected-blue);
+      background: var(--color-neptune);
+      border-color: var(--color-neptune);
       color: white;
 
       &:hover {
-        background: var(--selected-blue);
+        background: var(--color-neptune);
         color: white;
       }
     }
@@ -323,7 +323,7 @@
   }
 
   &__submit {
-    background: var(--selected-blue);
+    background: var(--color-neptune);
     color: white;
 
     &:hover {
